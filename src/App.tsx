@@ -159,8 +159,8 @@ export default function AlcoholCalculator() {
 										className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
 									/>
 								</div>
-								<div className="col-span-12 sm:col-span-2 ml-auto">
-									<div className="mb-1 block text-xs text-gray-500">~ {fmt(d.volumeMl * (d.abv / 100) * ETHANOL_DENSITY, 1)} g d'alcool</div>
+								<div className="col-span-12 sm:col-span-2 sm:ml-auto flex sm:block items-center justify-between">
+									<div className="mb-1 text-xs text-gray-500">~ {fmt(d.volumeMl * (d.abv / 100) * ETHANOL_DENSITY, 1)} g d'alcool</div>
 									<button onClick={() => removeDrink(d.id)} aria-label="Supprimer la boisson" className="rounded-xl bg-red-500 border px-3 py-2 text-sm text-white hover:bg-red-600">
 										Supprimer
 									</button>
