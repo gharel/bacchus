@@ -23,6 +23,12 @@ type Sex = "male" | "female";
 
 // Utilitaires
 const fmt = (n: number, d = 2) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: d, minimumFractionDigits: d }).format(n);
+const fmtHM = (n: number) => {
+	const totalMinutes = Math.round(n * 60); // convertit en minutes
+	const h = Math.floor(totalMinutes / 60);
+	const m = totalMinutes % 60;
+	return `${h}h ${m.toString().padStart(2, "0")}m`;
+};
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 export default function AlcoholCalculator() {
@@ -181,19 +187,25 @@ export default function AlcoholCalculator() {
 
 				<Card title="TA estimé (actuel)">
 					<div className={`text-2xl font-semibold ${currentBAC >= LEGAL_LIMIT ? "text-red-600" : "text-emerald-700"}`}>{fmt(currentBAC, 2)} g/L</div>
-					<p className="mt-1 text-sm text-gray-500">D'après Widmark, après {fmt(hoursSinceStart, 1)} h.</p>
+					<p className="mt-1 text-sm text-gray-500">
+						D'après{" "}
+						<a className="underline hover:no-underline" href="https://fr.wikipedia.org/wiki/Alcool%C3%A9mie" target="_blank">
+							Widmark
+						</a>
+						, après {fmtHM(hoursSinceStart)}.
+					</p>
 				</Card>
 
 				<Card title="Temps pour ≤ 0,5 g/L">
-					<div className="text-2xl font-semibold">{fmt(Math.max(0, hoursToLegal), 2)} h</div>
+					<div className="text-2xl font-semibold">{fmtHM(Math.max(0, hoursToLegal))}</div>
 					<p className="mt-1 text-sm text-gray-500">À vitesse d'élimination moyenne {BETA} g/L/h.</p>
 				</Card>
 			</section>
 
 			<section className="mt-6 grid gap-6 md:grid-cols-2">
 				<Card title="Temps pour revenir à 0">
-					<div className="text-xl font-semibold">{fmt(Math.max(0, hoursToZero), 2)} h</div>
-					<p className="mt-1 text-sm text-gray-500">Estimation conservative. Hydratation et repas peuvent influer.</p>
+					<div className="text-xl font-semibold">{fmtHM(Math.max(0, hoursToZero))}</div>
+					<p className="mt-1 text-sm text-gray-500">Estimation. Hydratation et repas peuvent influer.</p>
 				</Card>
 				<Card title="Récapitulatif">
 					<ul className="text-sm text-gray-700">
@@ -204,14 +216,16 @@ export default function AlcoholCalculator() {
 							Pic théorique : <b>{fmt(peakBAC, 2)} g/L</b>
 						</li>
 						<li>
-							Seuil légal : <b>{LEGAL_LIMIT} g/L</b>
+							Seuil légal (en France) : <b>{LEGAL_LIMIT} g/L</b>
 						</li>
 					</ul>
 				</Card>
 			</section>
 
-			<footer className="px-4 mt-4 text-xs text-gray-500">
-				<p>Outil d'information. Ne remplace pas un éthylotest. Les calculs sont des estimations et peuvent varier selon de nombreux facteurs (absorption, métabolisme, médicaments). Ne conduisez pas si vous avez bu.</p>
+			<footer className="px-4 mt-4 text-xs text-red-500">
+				<p>
+					Outil informatif qui ne remplace pas un éthylotest. Les calculs sont des estimations et peuvent varier selon de nombreux facteurs (absorption, métabolisme, médicaments).<br /> <strong>Ne conduisez pas si vous avez bu.</strong>
+				</p>
 			</footer>
 		</div>
 	);
