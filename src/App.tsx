@@ -1,25 +1,6 @@
 import React, { useMemo, useState } from "react";
-
-// --- Hypothèses et constantes de calcul ---
-// Densité de l'alcool pur : 0,789 g/mL
-const ETHANOL_DENSITY = 0.789; // g/mL
-// Coefficient de diffusion (Widmark r)
-const R_MALE = 0.68;
-const R_FEMALE = 0.55;
-// Vitesse moyenne d'élimination (France) ~0,15 g/L/h
-const BETA = 0.15; // g/L/h
-// Seuil légal de référence
-const LEGAL_LIMIT = 0.5; // g/L
-
-// Types
-interface Drink {
-	id: string;
-	label: string;
-	volumeMl: number; // mL
-	abv: number; // % vol
-}
-
-type Sex = "male" | "female";
+import { BETA, ETHANOL_DENSITY, LEGAL_LIMIT, R_FEMALE, R_MALE } from "./constants";
+import type { Drink, Sex } from "./types";
 
 // Utilitaires
 const fmt = (n: number, d = 2) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: d, minimumFractionDigits: d }).format(n);
@@ -29,7 +10,7 @@ const fmtHM = (n: number) => {
 	const m = totalMinutes % 60;
 	return `${h}h ${m.toString().padStart(2, "0")}m`;
 };
-const uid = () => Math.random().toString(36).slice(2, 9);
+const uid = () => self.crypto.randomUUID();
 
 export default function AlcoholCalculator() {
 	const [sex, setSex] = useState<Sex>("male");
@@ -104,13 +85,13 @@ export default function AlcoholCalculator() {
 						</div>
 
 						<div>
-							<label className="mb-1 block text-sm text-gray-600">Poids (kg)</label>
-							<input type="number" inputMode="decimal" min={30} max={200} value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="w-full rounded-xl bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
+							<label htmlFor="weight-input" className="mb-1 block text-sm text-gray-600">Poids (kg)</label>
+							<input id="weight-input" type="number" inputMode="decimal" min={30} max={200} value={weight} onChange={(e) => setWeight(Math.max(1, e.target.valueAsNumber || 0))} className="w-full rounded-xl bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
 						</div>
 
 						<div>
-							<label className="mb-1 block text-sm text-gray-600">Heures écoulées depuis la 1ʳᵉ boisson</label>
-							<input type="number" inputMode="decimal" min={0} step={0.5} value={hoursSinceStart} onChange={(e) => setHoursSinceStart(Number(e.target.value))} className="w-full rounded-xl bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
+							<label htmlFor="hours-input" className="mb-1 block text-sm text-gray-600">Heures écoulées depuis la 1ʳᵉ boisson</label>
+							<input id="hours-input" type="number" inputMode="decimal" min={0} step={0.5} value={hoursSinceStart} onChange={(e) => setHoursSinceStart(e.target.valueAsNumber || 0)} className="w-full rounded-xl bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900" />
 						</div>
 					</div>
 
@@ -139,29 +120,31 @@ export default function AlcoholCalculator() {
 						{drinks.map((d) => (
 							<div key={d.id} className="grid grid-cols-10 items-end gap-3 rounded-2xl bg-white p-3">
 								<div className="col-span-12 sm:col-span-4">
-									<label className="mb-1 block text-xs text-gray-500">Nom</label>
-									<input type="text" value={d.label} onChange={(e) => updateDrink(d.id, { label: e.target.value })} className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
+									<label htmlFor={`label-${d.id}`} className="mb-1 block text-xs text-gray-500">Nom</label>
+									<input id={`label-${d.id}`} type="text" value={d.label} onChange={(e) => updateDrink(d.id, { label: e.target.value })} className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900" />
 								</div>
 								<div className="col-span-6 sm:col-span-2">
-									<label className="mb-1 block text-xs text-gray-500">Volume (cL)</label>
+									<label htmlFor={`vol-${d.id}`} className="mb-1 block text-xs text-gray-500">Volume (cL)</label>
 									<input
+										id={`vol-${d.id}`}
 										type="number"
 										inputMode="decimal"
 										min={1}
 										value={d.volumeMl / 10}
-										onChange={(e) => updateDrink(d.id, { volumeMl: Number(e.target.value) * 10 })}
+										onChange={(e) => updateDrink(d.id, { volumeMl: (e.target.valueAsNumber || 0) * 10 })}
 										className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
 									/>
 								</div>
 								<div className="col-span-6 sm:col-span-2">
-									<label className="mb-1 block text-xs text-gray-500">Alcool (% vol)</label>
+									<label htmlFor={`abv-${d.id}`} className="mb-1 block text-xs text-gray-500">Alcool (% vol)</label>
 									<input
+										id={`abv-${d.id}`}
 										type="number"
 										inputMode="decimal"
 										min={0}
 										max={100}
 										value={d.abv}
-										onChange={(e) => updateDrink(d.id, { abv: Number(e.target.value) })}
+										onChange={(e) => updateDrink(d.id, { abv: e.target.valueAsNumber || 0 })}
 										className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
 									/>
 								</div>
@@ -189,7 +172,7 @@ export default function AlcoholCalculator() {
 					<div className={`text-2xl font-semibold ${currentBAC >= LEGAL_LIMIT ? "text-red-600" : "text-emerald-700"}`}>{fmt(currentBAC, 2)} g/L</div>
 					<p className="mt-1 text-sm text-gray-500">
 						D'après{" "}
-						<a className="underline hover:no-underline" href="https://fr.wikipedia.org/wiki/Alcool%C3%A9mie" target="_blank">
+						<a className="underline hover:no-underline" href="https://fr.wikipedia.org/wiki/Alcool%C3%A9mie" target="_blank" rel="noopener noreferrer">
 							Widmark
 						</a>
 						, après {fmtHM(hoursSinceStart)}.
